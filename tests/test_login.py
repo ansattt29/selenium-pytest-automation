@@ -1,31 +1,35 @@
-import pytest
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+def test_login_invalid(driver):
+    from pages.login_page import LoginPage
 
-@pytest.fixture
-def driver():
-    driver = webdriver.Chrome()
-    driver.implicitly_wait(10)
-    yield driver
-    driver.quit()
+    login = LoginPage(driver)
+    login.open()
+    login.login("tomsmith", "wrongpassword")
 
-def test_login_invalid_password(driver):
-    driver.get("https://the-internet.herokuapp.com/login")
+    assert "invalid" in login.get_message().lower()
 
-    driver.find_element(By.ID, "username").send_keys("tomsmith")
-    driver.find_element(By.ID, "password").send_keys("wrongpassword")
-    driver.find_element(By.XPATH, "//button").click()
+def test_login_empty_password(driver):
+    from pages.login_page import LoginPage
 
-    message = driver.find_element(By.ID, "flash").text
-    assert "invalid" in message.lower()
+    login = LoginPage(driver)
+    login.open()
+    login.login("tomsmith", "")
 
-def test_login_success(driver):
-    driver.get("https://the-internet.herokuapp.com/login")
+    assert "invalid" in login.get_message().lower()
 
-    driver.find_element(By.ID, "username").send_keys("tomsmith")
-    driver.find_element(By.ID, "password").send_keys("SuperSecretPassword!")
-    driver.find_element(By.XPATH, "//button").click()
+def test_login_empty_username(driver):
+    from pages.login_page import LoginPage
 
-    message = driver.find_element(By.ID, "flash").text
-    assert "secure area" in message.lower()
+    login = LoginPage(driver)
+    login.open()
+    login.login("", "SuperSecretPassword!")
 
+    assert "invalid" in login.get_message().lower()
+
+def test_login_valid(driver):
+    from pages.login_page import LoginPage
+
+    login = LoginPage(driver)
+    login.open()
+    login.login("tomsmith", "SuperSecretPassword!")
+
+    assert "secure area" in login.get_message().lower()
